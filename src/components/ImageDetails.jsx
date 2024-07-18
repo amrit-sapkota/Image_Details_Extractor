@@ -6,7 +6,7 @@ import { Pie } from "react-chartjs-2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Register the required components for Chart.js
+// Registering the required components for Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const ImageDetails = () => {
@@ -24,12 +24,19 @@ const ImageDetails = () => {
     setStatus("loading");
     setError(null);
     setImageUrl(data.imageUrl);
+    setDetails([]); // Clearing the previous details
 
     try {
       const response = await axios.post("/api/extract-details", {
         image_url: data.imageUrl,
       });
       const fetchedDetails = JSON.parse(response.data.processed_text); // Parsing the JSON string to object
+      // Checking if Time is an object with Time In and Time Out keys
+      if (typeof fetchedDetails.Time === "object") {
+        fetchedDetails[
+          "Time"
+        ] = `${fetchedDetails.Time["Time In"]} - ${fetchedDetails.Time["Time Out"]}`;
+      }
 
       // Calculating the net weight
       if (
@@ -41,7 +48,7 @@ const ImageDetails = () => {
         fetchedDetails["Net Weight"] = `${netWeight} KG`;
       }
 
-      setDetails([fetchedDetails]); // Set details to the modified object
+      setDetails([fetchedDetails]); // Setting details to the modified object
       setStatus("succeeded");
       toast.success("Image details fetched successfully!");
     } catch (err) {
@@ -51,7 +58,7 @@ const ImageDetails = () => {
     }
   };
 
-  // Prepare data for the chart
+  // Preparing data for the chart
   const chartData = {
     labels: details.map((detail) => detail["Waste Name"]),
     datasets: [
@@ -79,62 +86,102 @@ const ImageDetails = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-100 min-h-screen">
       <ToastContainer />
-      <form onSubmit={handleSubmit(onSubmit)} className="mb-6">
-        <input
-          {...register("imageUrl", {
-            required: true,
-            pattern: /(https?:\/\/.*\.(?:png|jpg))/i,
-          })}
-          className="border p-2 w-full"
-          placeholder="Enter image URL"
-        />
-        {errors.imageUrl && <p className="text-red-500">Invalid URL</p>}
-        <button type="submit" className="bg-blue-500 text-white p-2 mt-2">
-          Submit
-        </button>
-      </form>
-      {status === "loading" && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {imageUrl && (
-        <img src={imageUrl} alt="Fetched" className="w-full h-auto mb-6" />
-      )}
-
+      <div className="flex flex-col lg:flex-row items-center justify-between w-full mb-8 space-y-8 lg:space-y-0 lg:space-x-8">
+        <div className="w-full lg:w-1/2 bg-white shadow-md p-6 rounded-md">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <input
+              {...register("imageUrl", {
+                required: true,
+                pattern: /(https?:\/\/.*\.(?:png|jpg))/i,
+              })}
+              className="border p-2 w-full rounded-md focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter image URL"
+            />
+            {errors.imageUrl && (
+              <p className="text-red-500 text-sm">Invalid URL</p>
+            )}
+            <div className="flex items-center justify-center">
+              <button
+                type="submit"
+                className="bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600"
+              >
+                Get Details
+              </button>
+            </div>
+          </form>
+        </div>
+        <div className="flex flex-col items-center w-full lg:w-1/2">
+          {status === "loading" && <p>Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="Fetched"
+              className="w-[300px] h-64 mb-6 rounded-md shadow-md"
+            />
+          )}
+        </div>
+      </div>
       {details.length > 0 && (
-        <div>
-          <table className="w-full table-auto mb-6">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Ticket Number</th>
-                <th>Issuing Company</th>
-                <th>Truck Number</th>
-                <th>Waste Name</th>
-                <th>Gross Weight</th>
-                <th>Tare Weight</th>
-                <th>Net Weight</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.map((detail, index) => (
-                <tr key={index}>
-                  <td>{detail["Date"]}</td>
-                  <td>{detail["Time"]}</td>
-                  <td>{detail["Ticket Number"]}</td>
-                  <td>{detail["Issuing Company"]}</td>
-                  <td>{detail["Truck Number"]}</td>
-                  <td>{detail["Waste Name"]}</td>
-                  <td>{detail["Gross Weight"]}</td>
-                  <td>{detail["Tare Weight"] ?? "N/A"}</td>
-                  <td>{detail["Net Weight"] ?? "Calculating..."}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="w-full max-w-md mx-auto">
+        <div className="flex flex-col lg:flex-row justify-between items-start space-y-8 lg:space-y-0 lg:space-x-8">
+          <div className="w-full lg:w-1/2 space-y-6">
+            {details.map((detail, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 p-4 rounded-md shadow-md bg-white"
+              >
+                <div className="space-y-2">
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Date:</div>
+                    <div className="w-2/3">{detail["Date"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Time:</div>
+                    <div className="w-2/3">
+                      {typeof detail["Time"] === "object"
+                        ? `${detail["Time"]["Time In"]} - ${detail["Time"]["Time Out"]}`
+                        : detail["Time"]}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Ticket Number:</div>
+                    <div className="w-2/3">{detail["Ticket Number"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Issuing Company:</div>
+                    <div className="w-2/3">{detail["Issuing Company"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Truck Number:</div>
+                    <div className="w-2/3">{detail["Truck Number"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Waste Name:</div>
+                    <div className="w-2/3">{detail["Waste Name"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Gross Weight:</div>
+                    <div className="w-2/3">{detail["Gross Weight"]}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Tare Weight:</div>
+                    <div className="w-2/3">
+                      {detail["Tare Weight"] ?? "N/A"}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-1/3 font-bold">Net Weight:</div>
+                    <div className="w-2/3">
+                      {detail["Net Weight"] ?? "Calculating..."}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="w-full lg:w-1/2 max-w-md bg-white p-6 rounded-md shadow-md">
             <Pie data={chartData} />
           </div>
         </div>
