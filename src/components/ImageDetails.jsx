@@ -27,12 +27,9 @@ const ImageDetails = () => {
     setDetails([]); // Clearing the previous details
 
     try {
-      const response = await axios.post(
-        "https://openai-api.karmalive.pro/extract-details",
-        {
-          image_url: data.imageUrl,
-        }
-      );
+      const response = await axios.post("/api/extract-details", {
+        image_url: data.imageUrl,
+      });
       const fetchedDetails = JSON.parse(response.data.processed_text); // Parsing the JSON string to object
       // Checking if Time is an object with Time In and Time Out keys
       if (typeof fetchedDetails.Time === "object") {
