@@ -51,6 +51,22 @@ const ImageDetails = () => {
       setDetails([fetchedDetails]); // Setting details to the modified object
       setStatus("succeeded");
       toast.success("Image details fetched successfully!");
+      // Save details to the database
+      const saveDetails = {
+        Date: fetchedDetails.Date,
+        Time: fetchedDetails.Time,
+        TicketNumber: fetchedDetails["Ticket Number"],
+        IssuingCompany: fetchedDetails["Issuing Company"],
+        TruckNumber: fetchedDetails["Truck Number"],
+        WasteName: fetchedDetails["Waste Name"],
+        GrossWeight: fetchedDetails["Gross Weight"],
+        TareWeight: fetchedDetails["Tare Weight"],
+        NetWeight: fetchedDetails["Net Weight"],
+      };
+
+      // Saving details to the database
+      await axios.post("http://localhost:5000/api/save-details", saveDetails);
+      toast.success("Image details saved successfully!");
     } catch (err) {
       setError("Failed to fetch image details");
       setStatus("failed");
