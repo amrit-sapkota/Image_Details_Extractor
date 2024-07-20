@@ -2,6 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env file
+
 const app = express();
 const port = 5000;
 
@@ -10,7 +14,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/image-details", {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
