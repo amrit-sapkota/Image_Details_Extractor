@@ -31,6 +31,7 @@ const ImageDetails = () => {
         image_url: data.imageUrl,
       });
       const fetchedDetails = JSON.parse(response.data.processed_text); // Parsing the JSON string to object
+
       // Checking if Time is an object with Time In and Time Out keys
       if (typeof fetchedDetails.Time === "object") {
         fetchedDetails[
@@ -51,6 +52,7 @@ const ImageDetails = () => {
       setDetails([fetchedDetails]); // Setting details to the modified object
       setStatus("succeeded");
       toast.success("Image details fetched successfully!");
+
       // Save details to the database
       const saveDetails = {
         Date: fetchedDetails.Date,
@@ -65,8 +67,13 @@ const ImageDetails = () => {
       };
 
       // Saving details to the database
-      await axios.post("http://localhost:5000/api/save-details", saveDetails);
-      toast.success("Image details saved successfully!");
+      try {
+        await axios.post("http://localhost:5000/api/save-details", saveDetails);
+        toast.success("Image details saved successfully!");
+      } catch (err) {
+        setError("Failed to save image details to the database");
+        toast.error("Failed to save image details to the database");
+      }
     } catch (err) {
       setError("Failed to fetch image details");
       setStatus("failed");
